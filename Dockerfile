@@ -8,12 +8,8 @@ RUN npm install
 
 COPY . .
 
-ENV NODE_ENV production
-
-RUN npm ci --only=production --quiet
-COPY --chown=node:node --from=builder /app/prisma /app/prisma
-COPY --chown=node:node --from=builder /app/src /app/src
+ENV PORT=8080
 
 EXPOSE 8080
 
-CMD ["npm","start", "node", "src/servers/app.js"]
+CMD ["npm", "start"]

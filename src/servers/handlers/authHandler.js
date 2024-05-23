@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import bcrypt from "bcrypt";
-import { db } from "../../db/index.js";
+import db from "../../../database/index.js";
+import crypto from "crypto";
 
 // create jwt token
 const createToken = (id) => {
@@ -21,36 +22,40 @@ export const signInHandler = async (req, res) => {
     if (!email || !password) {
       return res
         .status(400)
-        .json({ message: "Email and password are required" });
+        .json({ status: "fail", message: "Email and password are required" });
     }
 
     // validate email
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ message: "Invalid email" });
+      return res.status(400).json({ status: "fail", message: "Invalid email" });
     }
 
     // check if email exist
-    const user = await db.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    const [results] = await db.query(`SELECT * FROM User WHERE email = ?`, [
+      email,
+    ]);
 
-    if (!user) {
+    if (results.length <= 0) {
       return res.status(400).json({ message: "User not found" });
     }
+
+    const user = results[0];
 
     // compare password
     const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {
-      return res.status(400).json({ message: "Invalid password" });
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid password" });
     }
 
     // create jwt token
-    const token = createToken(user.id);
+    const token = createToken(results.id);
 
-    return res.status(200).json({ token });
+    return res
+      .status(200)
+      .json({ status: "success", message: "successfully login", token });
   } catch (error) {
     console.log(error);
     throw error;
@@ -64,25 +69,35 @@ export const signUpHandler = async (req, res) => {
 
     // validate name, email, and password
     if (!name || !email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Name, email, and password are required" });
+      return res.status(400).json({
+        status: "fail",
+        message: "Name, email, and password are required",
+      });
     }
 
     // validate email and password
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ message: "Invalid email" });
+      return res.status(400).json({ status: "fail", message: "Invalid email" });
     }
 
     if (!validator.isStrongPassword(password)) {
-      return res.status(400).json({ message: "Password is not strong enough" });
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Password is not strong enough" });
     }
 
     // check if email already exist
-    const isEmailExist = false;
+
+    const [results] = await db.query(`SELECT * FROM User WHERE email = ?`, [
+      email,
+    ]);
+
+    const isEmailExist = results.length > 0 ? true : false;
 
     if (isEmailExist) {
-      return res.status(400).json({ message: "Email already exist" });
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Email already exist" });
     }
 
     // hash password with bcrypt
@@ -90,19 +105,23 @@ export const signUpHandler = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, genSalt);
 
     if (!hashedPassword) {
-      res.status(500).json({ message: "Failed to hash password" });
+      res
+        .status(500)
+        .json({ status: "fail", message: "Failed to hash password" });
     }
 
-    // create user in database
-    await db.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
-    });
+    const id = crypto.randomUUID();
 
-    return res.status(201).json({ message: "User created" });
+    const createdAt = new Date().toISOString();
+    const updatedAt = createdAt;
+
+    // create user in database
+    await db.query(
+      `INSERT INTO User (id, name, email, password, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, name, email, hashedPassword, createdAt, updatedAt]
+    );
+
+    return res.status(201).json({ status: "success", message: "User created" });
   } catch (error) {
     console.log(error);
     throw error;

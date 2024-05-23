@@ -25,6 +25,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server on port 8080 or the port specified in the environment
-app.listen(8080, () => {
-  console.log("Server is running on http://localhost:8080");
+const port = process.env.PORT || 8080;
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });

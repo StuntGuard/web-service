@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { db } from "../db/index.js";
+import db from "../database";
 
 export const authRequire = async (req, res, next) => {
   try {
@@ -7,30 +7,27 @@ export const authRequire = async (req, res, next) => {
     const { authorization } = req.headers;
 
     if (!authorization) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ status: "fail", message: "Unauthorized" });
     }
 
     // get token from authorization
     const token = authorization.split(" ")[1];
 
     if (!token) {
-      throw new Error("Token not found");
+      return res.status(401).json({ status: "fail", message: "Unauthorized" });
     }
 
     // verify token
     const { id } = jwt.verify(token, process.env.SECRET_TOKEN);
 
-    const user = await db.user.findUnique({
-      where: {
-        id,
-      },
-    });
+    const [results] = await db.query(`SELECT * FROM User WHERE id = ?`, [id]);
 
-    if (!user) {
-      return res.status(401).json({ message: "Unauthorized" });
+    if (results.length <= 0) {
+      return res.status(401).json({ status: "fail", message: "Unauthorized" });
     }
 
     // set user id in request object for future use
+    const user = results[0];
     req.user = user.id;
 
     next();
