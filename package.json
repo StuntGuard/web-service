@@ -4,6 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
+    "start" : "node src/servers/app.js",
     "dev": "nodemon src/servers/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
