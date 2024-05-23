@@ -1,12 +1,14 @@
 FROM node:18
 
-WORKDIR /user/src/app
-
-COPY package.json ./
+WORKDIR /usr/src/app
 
 RUN npm install
 
+COPY package*.json ./
+
 COPY . .
+
+ENV PORT=8080
 
 EXPOSE 8080
 
