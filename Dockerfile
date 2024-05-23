@@ -13,4 +13,6 @@ ENV PORT=8080
 
 EXPOSE 8080
 
+RUN npx prisma generate
+
 CMD ["npm", "run", "start"]
