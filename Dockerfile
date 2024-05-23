@@ -1,4 +1,4 @@
-FROM nodejs
+FROM node:18
 
 WORKDIR /user/src/app
 
