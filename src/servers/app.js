@@ -12,6 +12,9 @@ const app = express();
 // Middleware to parse the request body as JSON
 app.use(express.json());
 
+// Middleware to parse the request body as URL encoded data
+app.use(express.urlencoded({ extended: false }));
+
 // Middleware to enable CORS (Cross-Origin Resource Sharing) for all requests
 app.use(cors());
 
