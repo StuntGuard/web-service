@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 import bcrypt from "bcrypt";
 import db from "../../../database/index.js";
-import crypto from "crypto";
 
 // create jwt token
 const createToken = (id) => {
@@ -51,7 +50,7 @@ export const signInHandler = async (req, res) => {
     }
 
     // create jwt token
-    const token = createToken(results.id);
+    const token = createToken(user.id);
 
     return res
       .status(200)
@@ -110,15 +109,13 @@ export const signUpHandler = async (req, res) => {
         .json({ status: "fail", message: "Failed to hash password" });
     }
 
-    const id = crypto.randomUUID();
-
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
     // create user in database
     await db.query(
-      `INSERT INTO User (id, name, email, password, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, name, email, hashedPassword, createdAt, updatedAt]
+      `INSERT INTO User (name, email, password, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+      [name, email, hashedPassword, createdAt, updatedAt]
     );
 
     return res.status(201).json({ status: "success", message: "User created" });

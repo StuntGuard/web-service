@@ -1,5 +1,6 @@
 import express from "express";
 import authRoute from "./routes/authRoute.js";
+import missionRoute from "./routes/missionRoute.js";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -20,6 +21,7 @@ app.use(cors());
 
 // Middleware to handle routes for authentication (sign-in, sign-up)
 app.use("/", authRoute);
+app.use("/missions", missionRoute);
 
 // Middleware to handle errors
 app.use((err, req, res, next) => {

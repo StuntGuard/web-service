@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import db from "../database";
+import db from "../database/index.js";
 
 export const authRequire = async (req, res, next) => {
   try {
@@ -18,7 +18,7 @@ export const authRequire = async (req, res, next) => {
     }
 
     // verify token
-    const { id } = jwt.verify(token, process.env.SECRET_TOKEN);
+    const { id } = await jwt.verify(token, process.env.SECRET_TOKEN);
 
     const [results] = await db.query(`SELECT * FROM User WHERE id = ?`, [id]);
 
