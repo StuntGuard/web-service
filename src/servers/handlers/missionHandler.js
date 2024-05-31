@@ -4,6 +4,7 @@ import db from "../../../database/index.js";
 export const getAllMissionsHandler = async (req, res) => {
   try {
     const userId = req.user;
+    const { id } = req.params;
 
     if (!userId) {
       return res.status(401).json({
@@ -12,9 +13,21 @@ export const getAllMissionsHandler = async (req, res) => {
       });
     }
 
+    console.log(id);
+
+    const [childs] = await db.query(`SELECT * FROM Child WHERE id = ${id}`);
+
+    console.log(childs);
+
+    if (childs.length <= 0) {
+      return res
+        .status(404)
+        .json({ status: "fail", message: "child not found" });
+    }
+
     const [results] = await db.query(
-      `SELECT * FROM Mission WHERE assignedToUser = ?`,
-      [userId]
+      `SELECT * FROM Mission WHERE assignedToUser = ? AND assignedToChild = ?`,
+      [userId, id]
     );
 
     return res
@@ -31,6 +44,7 @@ export const postMissionHandler = async (req, res) => {
   try {
     // get user id from request object
     const userId = req.user;
+    const { id } = req.params;
 
     // check if user is logged in
     if (!userId) {
@@ -38,6 +52,14 @@ export const postMissionHandler = async (req, res) => {
         status: "fail",
         message: "Unauthorized",
       });
+    }
+
+    const [childs] = await db.query(`SELECT * FROM Child WHERE id = ?`, [id]);
+
+    if (childs.length <= 0) {
+      return res
+        .status(404)
+        .json({ status: "fail", message: "child not found" });
     }
 
     // get title and description from request body
@@ -57,8 +79,8 @@ export const postMissionHandler = async (req, res) => {
 
     // insert mission into database
     await db.query(
-      `INSERT INTO Mission (title, description, assignedToUser, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
-      [title, description, userId, createdAt, updatedAt]
+      `INSERT INTO Mission (title, description, assignedToUser, assignedToChild, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)`,
+      [title, description, userId, id, createdAt, updatedAt]
     );
 
     return res
@@ -71,103 +93,103 @@ export const postMissionHandler = async (req, res) => {
 };
 
 // this function for getting mission by id and user id
-export const getMissionByIdHandler = async (req, res) => {
-  try {
-    // get user id from request object
-    const userId = req.user;
+// export const getMissionByIdHandler = async (req, res) => {
+//   try {
+//     // get user id from request object
+//     const userId = req.user;
 
-    // check if user is logged in
-    if (!userId) {
-      return res.status(401).json({
-        status: "fail",
-        message: "Unauthorized",
-      });
-    }
+//     // check if user is logged in
+//     if (!userId) {
+//       return res.status(401).json({
+//         status: "fail",
+//         message: "Unauthorized",
+//       });
+//     }
 
-    // get mission id from request params
-    const { id } = req.params;
+//     // get mission id from request params
+//     const { id } = req.params;
 
-    // check if mission id is provided
-    const [results] = await db.query(
-      `SELECT * FROM Mission WHERE id = ? AND assignedToUser = ?`,
-      [id, userId]
-    );
+//     // check if mission id is provided
+//     const [results] = await db.query(
+//       `SELECT * FROM Mission WHERE id = ? AND assignedToUser = ?`,
+//       [id, userId]
+//     );
 
-    // check if mission is found
-    if (results.length <= 0) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "mission not found" });
-    }
+//     // check if mission is found
+//     if (results.length <= 0) {
+//       return res
+//         .status(404)
+//         .json({ status: "fail", message: "mission not found" });
+//     }
 
-    return res.status(200).json({
-      status: "success",
-      message: "mission fetched",
-      data: results[0],
-    });
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-};
+//     return res.status(200).json({
+//       status: "success",
+//       message: "mission fetched",
+//       data: results[0],
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     throw error;
+//   }
+// };
 
 // this function for updating mission by id and user id
-export const updateMissionHandler = async (req, res) => {
-  try {
-    // get user id from request object
-    const userId = req.user;
+// export const updateMissionHandler = async (req, res) => {
+//   try {
+//     // get user id from request object
+//     const userId = req.user;
 
-    // check if user is logged in
-    if (!userId) {
-      return res.status(401).json({
-        status: "fail",
-        message: "Unauthorized",
-      });
-    }
+//     // check if user is logged in
+//     if (!userId) {
+//       return res.status(401).json({
+//         status: "fail",
+//         message: "Unauthorized",
+//       });
+//     }
 
-    // get mission id from request params
-    const { id } = req.params;
+//     // get mission id from request params
+//     const { id } = req.params;
 
-    // check if mission id is provided
-    const [results] = await db.query(
-      `SELECT * FROM Mission WHERE id = ? AND assignedToUser = ?`,
-      [id, userId]
-    );
+//     // check if mission id is provided
+//     const [results] = await db.query(
+//       `SELECT * FROM Mission WHERE id = ? AND assignedToUser = ?`,
+//       [id, userId]
+//     );
 
-    if (results.length <= 0) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Mission not found" });
-    }
+//     if (results.length <= 0) {
+//       return res
+//         .status(404)
+//         .json({ status: "fail", message: "Mission not found" });
+//     }
 
-    // get title and description from request body
-    const { title, description } = req.body;
+//     // get title and description from request body
+//     const { title, description } = req.body;
 
-    // validate title and description
-    if (!title || !description) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Title and description are required",
-      });
-    }
+//     // validate title and description
+//     if (!title || !description) {
+//       return res.status(400).json({
+//         status: "fail",
+//         message: "Title and description are required",
+//       });
+//     }
 
-    // create date for updatedAt
-    const updatedAt = new Date().toISOString();
+//     // create date for updatedAt
+//     const updatedAt = new Date().toISOString();
 
-    // update mission in database
-    await db.query(
-      `UPDATE Mission SET title = ?, description = ?, updatedAt = ? WHERE id = ? AND assignedToUser = ?`,
-      [title, description, updatedAt, id, userId]
-    );
+//     // update mission in database
+//     await db.query(
+//       `UPDATE Mission SET title = ?, description = ?, updatedAt = ? WHERE id = ? AND assignedToUser = ?`,
+//       [title, description, updatedAt, id, userId]
+//     );
 
-    return res
-      .status(200)
-      .json({ status: "success", message: "mission updated" });
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-};
+//     return res
+//       .status(200)
+//       .json({ status: "success", message: "mission updated" });
+//   } catch (error) {
+//     console.log(error);
+//     throw error;
+//   }
+// };
 
 // this function for deleting mission by id and user id
 export const deleteMissionHandler = async (req, res) => {

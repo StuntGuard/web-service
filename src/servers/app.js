@@ -1,6 +1,7 @@
 import express from "express";
 import authRoute from "./routes/authRoute.js";
 import missionRoute from "./routes/missionRoute.js";
+import childRoute from "./routes/childRoute.js";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -22,6 +23,7 @@ app.use(cors());
 // Middleware to handle routes for authentication (sign-in, sign-up)
 app.use("/", authRoute);
 app.use("/missions", missionRoute);
+app.use("/childs", childRoute);
 
 // Middleware to handle errors
 app.use((err, req, res, next) => {
