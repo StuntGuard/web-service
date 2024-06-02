@@ -1,11 +1,11 @@
 import express from "express";
 import { authRequire } from "../../../middleware/authRequire.js";
+import upload from "../../../middleware/uploadMulter.js";
 import {
+  deleteChildHandler,
   getChildByHandler,
   postChildHandler,
-  deleteChildHandler,
 } from "../handlers/childHandler.js";
-import upload from "../../../middleware/uploadMulter.js";
 
 const router = express.Router();
 

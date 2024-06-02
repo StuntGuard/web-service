@@ -1,6 +1,6 @@
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import validator from "validator";
-import bcrypt from "bcrypt";
 import db from "../../../database/index.js";
 
 // create jwt token
@@ -52,12 +52,17 @@ export const signInHandler = async (req, res) => {
     // create jwt token
     const token = createToken(user.id);
 
-    return res
-      .status(200)
-      .json({ status: "success", message: "successfully login", token });
+    return res.status(200).json({
+      status: "success",
+      message: "successfully login",
+      token,
+      name: user.name,
+    });
   } catch (error) {
-    console.log(error);
-    throw error;
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error",
+    });
   }
 };
 

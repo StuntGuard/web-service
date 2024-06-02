@@ -1,5 +1,5 @@
-import storage from "../../storage/index.js";
 import fs from "fs";
+import storage from "../../storage/index.js";
 
 const deleteFile = (filePath) => {
   return new Promise((resolve, reject) => {

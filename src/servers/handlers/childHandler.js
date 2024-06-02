@@ -20,8 +20,10 @@ export const getChildByHandler = async (req, res) => {
       data: results,
     });
   } catch (error) {
-    console.log(error);
-    throw error;
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error",
+    });
   }
 };
 
@@ -56,12 +58,12 @@ export const postChildHandler = async (req, res) => {
       });
     }
 
-    const genderFilter = ["male", "female"];
+    const genderFilter = ["laki-laki", "perempuan"];
 
     if (!genderFilter.find((element) => element === gender)) {
       return res.status(400).json({
         status: "fail",
-        message: "gender must be male or female",
+        message: "gender must be laki-laki or perempuan",
       });
     }
 
@@ -78,8 +80,10 @@ export const postChildHandler = async (req, res) => {
       message: "child created",
     });
   } catch (error) {
-    console.log(error);
-    throw error;
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error",
+    });
   }
 };
 
@@ -107,7 +111,9 @@ export const deleteChildHandler = async (req, res) => {
       .status(200)
       .json({ status: "success", message: "Child deleted" });
   } catch (error) {
-    console.log(error);
-    throw error;
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error",
+    });
   }
 };

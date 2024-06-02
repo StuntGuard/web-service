@@ -13,8 +13,6 @@ export const getAllMissionsHandler = async (req, res) => {
       });
     }
 
-    console.log(id);
-
     const [childs] = await db.query(`SELECT * FROM Child WHERE id = ${id}`);
 
     console.log(childs);
@@ -30,12 +28,16 @@ export const getAllMissionsHandler = async (req, res) => {
       [userId, id]
     );
 
-    return res
-      .status(200)
-      .json({ status: "success", message: "mission fetched", data: results });
+    return res.status(200).json({
+      status: "success",
+      message: "mission fetched",
+      data: results.reverse(),
+    });
   } catch (error) {
-    console.log(error);
-    throw error;
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error",
+    });
   }
 };
 
@@ -87,8 +89,10 @@ export const postMissionHandler = async (req, res) => {
       .status(201)
       .json({ status: "success", message: "mission created" });
   } catch (error) {
-    console.log(error);
-    throw error;
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error",
+    });
   }
 };
 
@@ -231,7 +235,9 @@ export const deleteMissionHandler = async (req, res) => {
       .status(200)
       .json({ status: "success", message: "mission deleted" });
   } catch (error) {
-    console.log(error);
-    throw error;
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error",
+    });
   }
 };

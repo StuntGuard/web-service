@@ -5,7 +5,6 @@ import {
   getAllMissionsHandler,
   // getMissionByIdHandler,
   postMissionHandler,
-  // updateMissionHandler,
 } from "../handlers/missionHandler.js";
 
 const router = express.Router();
