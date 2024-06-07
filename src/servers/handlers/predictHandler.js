@@ -35,6 +35,8 @@ export const postPredictHandler = async (req, res) => {
 
     const { label, confidenceScore } = dataPredict;
 
+    console.log(label, confidenceScore);
+
     if (!label || !confidenceScore) {
       return res.status(500).json({
         status: "fail",
@@ -126,6 +128,7 @@ export const getPredictHandler = async (req, res) => {
       },
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       status: "fail",
       message: "Internal server error",

@@ -1,8 +1,17 @@
 import tf from "@tensorflow/tfjs-node";
 
 function normalizeData(age, gender, height) {
-  const normalizedAge = (Number(age) - 0) / (60 - 0);
-  const normalizedHeight = (Number(height) - 40) / (128 - 40);
+  const meanHeight = 86.04882999582838;
+  const meanAge = 28.304932427797215;
+
+  const ageStd = 19.23567219119465;
+  const heightStd = 19.74861167410255;
+
+  // const normalizedAge = (Number(age) - 0) / (60 - 0);
+  // const normalizedHeight = (Number(height) - 40) / (128 - 40);
+
+  const normalizedAge = (Number(age) - meanAge) / ageStd;
+  const normalizedHeight = (Number(height) - meanHeight) / heightStd;
 
   const genderFilter = {
     perempuan: 1,
@@ -31,12 +40,14 @@ export async function predictData(model, { age, gender, height }) {
 
     const inputTensors = [umurTensor, jenisKelaminTensor, Tinggi_BadanTensor];
     const prediction = await model.predict(inputTensors);
-
+   
     const score = await prediction.data();
-    console.log(score);
+
     const confidenceScore = Math.max(...score) * 100;
 
     const classes = ["Normal", "Tinggi", "Stunted", "Severely Stunted"];
+
+    console.log("ini score", score);
 
     const result = tf.argMax(prediction, 1).dataSync()[0];
 

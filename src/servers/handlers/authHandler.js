@@ -5,9 +5,7 @@ import db from "../../../database/index.js";
 
 // create jwt token
 const createToken = (id) => {
-  const token = jwt.sign({ id }, process.env.SECRET_TOKEN, {
-    expiresIn: "1h",
-  });
+  const token = jwt.sign({ id }, process.env.SECRET_TOKEN);
 
   return token;
 };

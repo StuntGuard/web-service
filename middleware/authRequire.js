@@ -17,17 +17,37 @@ export const authRequire = async (req, res, next) => {
   }
 
   // verify token
-  const { id } = await jwt.verify(token, process.env.SECRET_TOKEN);
+  jwt.verify(token, process.env.SECRET_TOKEN, async (err, decoded) => {
+    if (err) {
+      if (err.name === "TokenExpiredError") {
+        return res
+          .status(401)
+          .json({ status: "fail", message: "Token Expired" });
+      }
 
-  const [results] = await db.query(`SELECT * FROM User WHERE id = ?`, [id]);
+      return res.status(401).json({ status: "fail", message: "Unauthorized" });
+    }
 
-  if (results.length <= 0) {
-    return res.status(401).json({ status: "fail", message: "Unauthorized" });
-  }
+    try {
+      const id = decoded.id;
 
-  // set user id in request object for future use
-  const user = results[0];
-  req.user = user.id;
+      console.log(id);
 
-  next();
+      const [results] = await db.query(`SELECT * FROM User WHERE id = ?`, [id]);
+
+      if (results.length <= 0) {
+        return res
+          .status(401)
+          .json({ status: "fail", message: "Unauthorized" });
+      }
+      const user = results[0];
+      req.user = user.id;
+      next();
+    } catch (error) {
+      return res.status(500).json({
+        status: "fail",
+        message: "Internal server error",
+      });
+    }
+  });
 };
