@@ -1,9 +1,10 @@
 pipeline {
   agent any
   stages {
-    stage('Checkout Code') {
+    stage('') {
       steps {
-        git(url: 'https://github.com/StuntGuard/web-service', branch: 'main')
+        sh '''ls -a
+'''
       }
     }
 
