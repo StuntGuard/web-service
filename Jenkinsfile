@@ -27,7 +27,7 @@ pipeline {
     --set-env-vars GCLOUD_STORAGE_BUCKET="stuntguard" \\
     --set-env-vars GCLOUD_STORAGE_OBJECT_URL="https://storage.googleapis.com/stuntguard/images/" \\
     --set-env-vars GCLOUD_STORAGE_MODEL_URL="https://storage.googleapis.com/stuntguard/models/model.json" \\
-    --image asia-southeast2-docker.pkg.dev/capstone-project-424205/stuntguard-api \\
+    --image asia-southeast2-docker.pkg.dev/capstone-project-424205/stuntguard-app \\
     --platform managed \\
     --region asia-southeast2 \\
     --allow-unauthenticated
