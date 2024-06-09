@@ -10,7 +10,7 @@ pipeline {
 
     stage('Push To Artifact Registry') {
       steps {
-        sh 'docker push asia-southeast2-docker.pkg.dev/capstone-project-424205/stuntguard-main/stuntguard-api'
+        sh 'docker push asia-southeast2-docker.pkg.dev/capstone-project-424205/stuntguard-main/stuntguard-app'
         echo 'Success To Push Images'
       }
     }
