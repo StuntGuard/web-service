@@ -25,10 +25,6 @@ Table of Contents
     * [History](#history)
         * [GET /history/:id](#gethistoryid-id_child)
 * [Authentication](#authentication)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Contributing](#contributing)
-* [License](#license)
 
 Features
 --------
