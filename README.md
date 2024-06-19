@@ -24,7 +24,6 @@ Table of Contents
         * [POST /predicts/:id](#postpredictsid-id_child)
     * [History](#history)
         * [GET /history/:id](#gethistoryid-id_child)
-* [Authentication](#authentication)
 
 Features
 --------
@@ -39,6 +38,11 @@ Endpoints
 ---------
 
 ### Authentication
+Authentication is handled using JWT tokens. After successful login, a token is returned which must be included in the header of subsequent requests to protected endpoints.
+
+**Example Header:**
+
+    Authorization: Bearer jwt_token
 
 #### POST /sign-in
 
@@ -325,11 +329,5 @@ Retrieve historical prediction data for a child by ID.
         ]
     }
 
-Authentication
---------------
 
-Authentication is handled using JWT tokens. After successful login, a token is returned which must be included in the header of subsequent requests to protected endpoints.
 
-**Example Header:**
-
-    Authorization: Bearer jwt_token
