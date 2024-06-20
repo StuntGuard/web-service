@@ -1,2 +1,0 @@
-Mantab
-asdasd
