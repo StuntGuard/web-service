@@ -91,7 +91,11 @@ export const postPredictHandler = async (req, res) => {
         subtitle
       );
 
-      const resultParse = parseRecommendations(resultPrompt);
+      console.log(resultPrompt);
+
+      const resultParse = JSON.parse(resultPrompt);
+
+      console.log(resultParse);
 
       const insertQuery = `INSERT INTO Recommendation (title, description, assignedToResult) VALUES(?,?,?)`;
 
@@ -187,8 +191,7 @@ async function sendMultiModalPrompt(
   location,
   model,
   prediction,
-  message,
-  subtitle
+  confidenceScore
 ) {
   const vertexAI = new VertexAI({ project: projectId, location: location });
 
@@ -202,14 +205,12 @@ async function sendMultiModalPrompt(
         role: "user",
         parts: [
           {
-            text: `give recommendation for parents that child have got prediction ${prediction} from machine learning model`,
-          },
-
-          {
-            text: `this for detail ${message}`,
-          },
-          {
-            text: `this for condition child is ${subtitle}`,
+            text: `Based on the machine learning model's prediction, the child is classified as ${prediction} with a confidence score of ${confidenceScore}. Provide recommendations for parents in the format of an array of objects with properties 'title' and 'description'. The response format should be as follows:
+  [
+    { "title": "Title 1", "description": "Description 1" },
+    { "title": "Title 2", "description": "Description 2" }
+  ]
+  `,
           },
         ],
       },
@@ -224,24 +225,4 @@ async function sendMultiModalPrompt(
     aggregatedResponse.candidates[0].content.parts[0].text;
 
   return fullTextResponse;
-}
-
-function parseRecommendations(prompt) {
-  const lines = prompt.split("\n").filter((line) => line.trim());
-  const recommendations = [];
-
-  lines.forEach((line) => {
-    if (line.startsWith("**") && line.endsWith("**:")) {
-      currentCategory = line.replace(/\*\*/g, "").trim();
-    } else if (line.startsWith("* **")) {
-      const [title, ...descriptionParts] = line.replace("* **", "").split(":");
-      const description = descriptionParts.join(":").replace("**", "").trim();
-      recommendations.push({
-        title: title.trim(),
-        description,
-      });
-    }
-  });
-
-  return recommendations;
 }
