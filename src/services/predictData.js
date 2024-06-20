@@ -1,35 +1,48 @@
 import tf from "@tensorflow/tfjs-node";
+import fs from "fs";
 
-function normalizeData(age, gender, height) {
-  const meanHeight = 86.04882999582838;
-  const meanAge = 28.304932427797215;
+async function normalizeData(age, gender, height) {
+  try {
+    const scalerData = fs.readFileSync(
+      "./tfjs_model/scaler_params.json",
+      "utf8"
+    );
+    const scaler = JSON.parse(scalerData);
 
-  const ageStd = 19.23567219119465;
-  const heightStd = 19.74861167410255;
+    const min_ = tf.tensor(scaler.data_min_);
+    const scale_ = tf.tensor(scaler.data_max_);
 
-  // const normalizedAge = (Number(age) - 0) / (60 - 0);
-  // const normalizedHeight = (Number(height) - 40) / (128 - 40);
+    const inputData = tf.tensor([Number(age), Number(height)]);
 
-  const normalizedAge = (Number(age) - meanAge) / ageStd;
-  const normalizedHeight = (Number(height) - meanHeight) / heightStd;
+    const scaledData = inputData.sub(min_).div(scale_);
 
-  const genderFilter = {
-    perempuan: 1,
-    "laki-laki": 0,
-  };
+    const [normalizedAge, normalizedHeight] = scaledData.arraySync();
 
-  const genderIndex = genderFilter[gender];
+    const genderFilter = {
+      perempuan: 1,
+      "laki-laki": 0,
+    };
 
-  return { normalizedAge, normalizedHeight, genderIndex };
+    const genderIndex = genderFilter[gender];
+
+    min_.dispose();
+    scale_.dispose();
+    inputData.dispose();
+    scaledData.dispose();
+
+    return { normalizedAge, normalizedHeight, genderIndex };
+  } catch (error) {
+    console.error("Error loading scaler:", error);
+  }
 }
 
 export async function predictData(model, { age, gender, height }) {
   try {
-    const { normalizedAge, normalizedHeight, genderIndex } = normalizeData(
-      age,
-      gender,
-      height
-    );
+    const { normalizedAge, normalizedHeight, genderIndex } =
+      await normalizeData(age, gender, height);
+
+    console.log("normalizedAge", normalizedAge);
+    console.log("normalizedHeight", normalizedHeight);
 
     const umurTensor = tf.tensor2d([[parseFloat(normalizedAge)]], [1, 1]);
     const Tinggi_BadanTensor = tf.tensor2d(
@@ -40,7 +53,7 @@ export async function predictData(model, { age, gender, height }) {
 
     const inputTensors = [umurTensor, jenisKelaminTensor, Tinggi_BadanTensor];
     const prediction = await model.predict(inputTensors);
-   
+
     const score = await prediction.data();
 
     const confidenceScore = Math.max(...score) * 100;

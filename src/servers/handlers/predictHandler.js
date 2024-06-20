@@ -1,5 +1,6 @@
 import db from "../../../database/index.js";
 import { predictData } from "../../services/predictData.js";
+import { VertexAI } from "@google-cloud/vertexai";
 
 export const postPredictHandler = async (req, res) => {
   try {
@@ -35,8 +36,6 @@ export const postPredictHandler = async (req, res) => {
 
     const { label, confidenceScore } = dataPredict;
 
-    console.log(label, confidenceScore);
-
     if (!label || !confidenceScore) {
       return res.status(500).json({
         status: "fail",
@@ -59,31 +58,82 @@ export const postPredictHandler = async (req, res) => {
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
-    const [history] = await db.query(
-      `INSERT INTO History (assignedToChild, createdAt, updatedAt) VALUES (?,?,?)`,
-      [id, createdAt, updatedAt]
+    const projectId = process.env.GCLOUD_PROJECT_ID;
+    const location = "us-central1";
+    const modelGemini = "gemini-1.0-pro-vision-001";
+
+    const { prediction, message, subtitle } = predictResult[0];
+
+    const [predictExist] = await db.query(
+      `SELECT rs.id AS id FROM Result rs JOIN Predict p on rs.assignedToPredict = p.id WHERE p.prediction LIKE ? AND rs.score = ?`,
+      [label, confidenceScore, id]
     );
 
-    const [results] = await db.query(
-      `INSERT INTO Result (score, assignedToPredict, assignedToHistory, createdAt, updatedAt) VALUES (?,?,?,?,?)`,
-      [
-        confidenceScore,
-        predictResult[0].id,
-        history.insertId,
-        createdAt,
-        updatedAt,
-      ]
+    console.log(predictExist);
+
+    if (predictExist.length === 0) {
+      const [results] = await db.query(
+        `INSERT INTO Result (score, assignedToPredict, createdAt, updatedAt) VALUES (?,?,?,?)`,
+        [confidenceScore, predictResult[0].id, createdAt, updatedAt]
+      );
+
+      await db.query(
+        `INSERT INTO History (assignedToChild, createdAt, updatedAt, assignedToResult) VALUES (?,?,?,?)`,
+        [id, createdAt, updatedAt, results.insertId]
+      );
+
+      const resultPrompt = await sendMultiModalPrompt(
+        projectId,
+        location,
+        modelGemini,
+        prediction,
+        message,
+        subtitle
+      );
+
+      console.log(resultPrompt);
+
+      const resultParse = JSON.parse(resultPrompt);
+
+      console.log(resultParse);
+
+      const insertQuery = `INSERT INTO Recommendation (title, description, assignedToResult) VALUES(?,?,?)`;
+
+      const insertData = resultParse.map((e) => {
+        return db.query(insertQuery, [
+          e.title,
+          e.description,
+          results.insertId,
+        ]);
+      });
+
+      await Promise.all(insertData);
+
+      return res.status(200).json({
+        status: "success",
+        message: "data predicted",
+        data: {
+          id: results.insertId,
+          ...dataPredict,
+        },
+      });
+    }
+
+    await db.query(
+      `INSERT INTO History (assignedToChild, createdAt, updatedAt, assignedToResult) VALUES (?,?,?,?)`,
+      [id, createdAt, updatedAt, predictExist[0].id]
     );
 
     return res.status(200).json({
       status: "success",
       message: "data predicted",
       data: {
-        id: results.insertId,
+        id: predictExist[0].id,
         ...dataPredict,
       },
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       status: "fail",
       message: "Internal server error",
@@ -108,8 +158,8 @@ export const getPredictHandler = async (req, res) => {
     }
 
     const [reccomendations] = await db.query(
-      `SELECT * FROM Recommendation WHERE assignedToPredict = ?`,
-      [results[0].id]
+      `SELECT * FROM Recommendation WHERE assignedToResult = ?`,
+      [id]
     );
 
     if (reccomendations.length === 0) {
@@ -135,3 +185,44 @@ export const getPredictHandler = async (req, res) => {
     });
   }
 };
+
+async function sendMultiModalPrompt(
+  projectId,
+  location,
+  model,
+  prediction,
+  confidenceScore
+) {
+  const vertexAI = new VertexAI({ project: projectId, location: location });
+
+  const generativeVisionModel = vertexAI.getGenerativeModel({
+    model: model,
+  });
+
+  const request = {
+    contents: [
+      {
+        role: "user",
+        parts: [
+          {
+            text: `Based on the machine learning model's prediction, the child is classified as ${prediction} with a confidence score of ${confidenceScore}. Provide recommendations for parents in the format of an array of objects with properties 'title' and 'description'. The response format should be as follows:
+  [
+    { "title": "Title 1", "description": "Description 1" },
+    { "title": "Title 2", "description": "Description 2" }
+  ]
+  `,
+          },
+        ],
+      },
+    ],
+  };
+
+  const response = await generativeVisionModel.generateContent(request);
+
+  const aggregatedResponse = await response.response;
+
+  const fullTextResponse =
+    aggregatedResponse.candidates[0].content.parts[0].text;
+
+  return fullTextResponse;
+}
