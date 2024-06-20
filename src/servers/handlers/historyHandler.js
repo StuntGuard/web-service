@@ -31,8 +31,8 @@ export const getHistoryHandler = async (req, res) => {
     const temp = await Promise.all(
       history.map(async (item) => {
         const [result] = await db.query(
-          `SELECT r.id, p.prediction, p.subtitle, r.createdAt from Result r JOIN Predict p ON p.id = r.assignedToPredict WHERE r.assignedToHistory = ? `,
-          [item.id]
+          `SELECT r.id, p.prediction, p.subtitle, r.createdAt from Result r JOIN Predict p ON p.id = r.assignedToPredict JOIN History h on h.assignedToResult = r.id where r.id = ?`,
+          [item.assignedToResult]
         );
         return result;
       })
