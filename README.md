@@ -32,6 +32,7 @@ Features
 *   Child data management.
 *   Machine learning predictions for child stunting.
 *   Historical data tracking for monitoring child predictions.
+*   Smart Recommendation with NLM using Vertex AI
 *   Built with Express.js for fast and scalable backend development.
 
 Endpoints
